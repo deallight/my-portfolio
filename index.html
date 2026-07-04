@@ -8,8 +8,11 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="cursor-aurora" aria-hidden="true"></div>
+
   <header class="hero" aria-label="Deal Light">
     <div class="aurora-layer" aria-hidden="true"></div>
+    <p class="sound-notice">설정에서 소리를 허용으로 변경하여 주십시오</p>
     <div class="signature-stage">
       <div class="typing-code" role="img" aria-label='const identity = "Deal Light";'>
         <p class="typing-kicker">
@@ -239,6 +242,25 @@
   </footer>
   <script>
     const typingLines = Array.from(document.querySelectorAll(".typing-line"));
+
+    const initCursorAurora = () => {
+      const cursorAurora = document.querySelector(".cursor-aurora");
+
+      if (!cursorAurora || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
+
+      const moveAurora = (event) => {
+        cursorAurora.style.setProperty("--cursor-x", `${event.clientX}px`);
+        cursorAurora.style.setProperty("--cursor-y", `${event.clientY}px`);
+        cursorAurora.classList.add("is-active");
+      };
+
+      window.addEventListener("pointermove", moveAurora, { passive: true });
+      document.addEventListener("pointerleave", () => cursorAurora.classList.remove("is-active"));
+    };
+
+    initCursorAurora();
 
     const createTypingSound = () => {
       const audio = document.createElement("audio");
