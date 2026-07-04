@@ -246,12 +246,47 @@
       audio.preload = "auto";
       audio.volume = 0.72;
 
-      const play = () => {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
+      let needsUserGesture = false;
+      const unlockEvents = ["pointerdown", "keydown", "touchstart"];
+
+      const removeUnlockListeners = () => {
+        unlockEvents.forEach((eventName) => {
+          window.removeEventListener(eventName, playFromGesture);
+        });
       };
 
-      return { play };
+      const playFromGesture = () => {
+        needsUserGesture = false;
+        removeUnlockListeners();
+        play();
+      };
+
+      const play = () => {
+        audio.currentTime = 0;
+        audio
+          .play()
+          .then(() => {
+            needsUserGesture = false;
+            removeUnlockListeners();
+          })
+          .catch(() => {
+            if (needsUserGesture) {
+              return;
+            }
+
+            needsUserGesture = true;
+            unlockEvents.forEach((eventName) => {
+              window.addEventListener(eventName, playFromGesture, { once: true, passive: true });
+            });
+          });
+      };
+
+      const cancelPendingPlay = () => {
+        needsUserGesture = false;
+        removeUnlockListeners();
+      };
+
+      return { play, cancelPendingPlay };
     };
 
     const typingSound = createTypingSound();
@@ -296,6 +331,7 @@
 
           title?.classList.add("is-typed");
           currentCursor?.classList.add("is-active");
+          typingSound.cancelPendingPlay();
           return;
         }
 
